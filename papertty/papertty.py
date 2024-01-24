@@ -19,7 +19,7 @@ import papertty.drivers.drivers_color as drivers_color
 import papertty.drivers.drivers_colordraw as drivers_colordraw
 import papertty.drivers.driver_it8951 as driver_it8951
 import papertty.drivers.drivers_4in2 as driver_4in2
-import papertty.drivers.drivers_4in2V2 as driver_4in2V2
+import papertty.drivers.drivers_4in2_V2 as driver_4in2_V2
 
 
 # for ioctl
@@ -1069,7 +1069,7 @@ def get_drivers():
     driverlist = [drivers_partial.EPD1in54, drivers_partial.EPD2in13,
                   drivers_partial.EPD2in13v2, drivers_partial.EPD2in9,
                   drivers_partial.EPD2in13d, driver_4in2.EPD4in2,
-                  driver_4in2V2.EPD4in2V2,
+                  driver_4in2_V2.EPD4in2_V2,
 
                   drivers_full.EPD2in7, drivers_full.EPD3in7, drivers_full.EPD7in5,
                   drivers_color.EPD7in5b_V2, drivers_full.EPD7in5v2,
