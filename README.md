@@ -1,5 +1,7 @@
 # PaperTTY
 
+## Update for EPD4in2v2
+
 ## Overview
 
 PaperTTY is a simple Python module for using affordable SPI e-ink displays as a computer monitor, with a Raspberry Pi being the typical computer interfacing with the display. Most of the tested displays are Waveshare branded, but also others - particularly ones using the IT8951 controller - might work.
