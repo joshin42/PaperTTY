@@ -48,7 +48,7 @@ from papertty.drivers.drivers_partial import WavesharePartial
 # image.load[width, height]
 
 
-class EPD4in2V2(WavesharePartial, EPD4in2const):
+class EPD4in2_V2(WavesharePartial, EPD4in2const):
     """WaveShare 4.2 V2" """
 
     # code adapted from  epd_4in2.c
