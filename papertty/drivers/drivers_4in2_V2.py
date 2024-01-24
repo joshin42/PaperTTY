@@ -175,7 +175,7 @@ class EPD4in2_V2(WavesharePartial, EPD4in2const):
         self.set_setting(self.VCOM_AND_DATA_INTERVAL_SETTING, [0x97])
 
     def init(self, vcom, partial=True, gray=False):
-    	self.vcom = vcom
+        self.vcom = vcom
         self.partial_refresh = partial
         self.gray = gray
 
