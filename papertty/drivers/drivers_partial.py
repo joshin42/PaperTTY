@@ -63,7 +63,7 @@ class WavesharePartial(WaveshareEPD):
         self.colors = 2
         self.lut = None
 
-    def init(self, partial=True):
+    def init(self, partial=True, **kwargs):
         self.partial_refresh = partial
         if self.epd_init() != 0:
             return -1
@@ -594,3 +594,9 @@ class EPD2in13d(WavesharePartial):
             self.display_partial(self.get_frame_buffer(image), x, y, x + image.width, x + image.height)
         else:
             self.display_full(self.get_frame_buffer(image))
+
+class EPD4in2v2(WavesharePartial):
+    """Waveshare 4.2 v2" - 4 color grey"""
+
+    def __init__(self, **kwargs):
+        super().__init__(name='4.2v2" Grey', width=400, height=300)
