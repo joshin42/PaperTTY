@@ -21,10 +21,6 @@ from papertty.drivers.drivers_base import GPIO
 from papertty.drivers.drivers_consts import EPD4in2v2const
 from papertty.drivers.drivers_partial import WavesharePartial
 
-#import logging
-#logger = logging.getLogger(__name__)
-
-
 # The driver works as follows:
 #
 # This driver is for the following display:
@@ -45,7 +41,7 @@ from papertty.drivers.drivers_partial import WavesharePartial
 # pixel 0 is white, 1 is black
 #
 # The framebuffer should always contain the entire image, redrawing happens
-# only on the canged area.
+# only on the changed area.
 #
 # The properties width and height of the incoming image correspond to the
 # properties of the display, access to the pixels of the image is:
@@ -73,10 +69,11 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         self.supports_partial = True
 
         # this is the memory buffer that will be updated!
-        self.frame_buffer = [0x00] * (self.width * self.height // 8)
+        self.frame_buffer = [0xFF] * (self.width * self.height // 8)
 
     # TODO: universal?
     def set_setting(self, command, data):
+        print(f"set_setting")
         self.send_command(command)
         self.send_data(data)
         # for d in data:
@@ -84,6 +81,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
 
     # TODO: universal?
     def set_resolution(self):
+        print(f"set_resolution")
         self.set_setting(self.RESOLUTION_SETTING,
                          [(self.width >> 8) & 0xff,
                           self.width & 0xff,
@@ -91,6 +89,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
                           self.height & 0xff])
 
     def reset(self):
+        print(f"reset")
         self.digital_write(self.RST_PIN, GPIO.HIGH)
         self.delay_ms(100)
         self.digital_write(self.RST_PIN, GPIO.LOW)
@@ -123,6 +122,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
 
     # ReadBusy
     def wait_until_idle(self):
+        print(f"wait_until_idle")
         #self.send_command(self.GET_STATUS)
         while self.digital_read(self.BUSY_PIN) == 1:
         	self.delay_ms(20)
@@ -136,24 +136,28 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
     #     self.wait_until_idle()
 
     def turn_on_display(self):
+        print(f"turn_on_display")
         self.send_command(0x22) #Display Update Control
         self.send_data(0xF7)
         self.send_command(0x20) #Activate Display Update Sequence
         self.wait_until_idle()
 
     def turn_on_display_fast(self):
+        print(f"turn_on_display_fast")
         self.send_command(0x22) #Display Update Control
         self.send_data(0xC7)
         self.send_command(0x20) #Activate Display Update Sequence
         self.wait_until_idle()
 
     def turn_on_display_partial(self):
+        print(f"turn_on_display_partial")
         self.send_command(0x22) #Display Update Control
         self.send_data(0xFF)
         self.send_command(0x20) #Activate Display Update Sequence
         self.wait_until_idle()
         
     def turn_on_display_4gray(self):
+        print(f"turn_on_display_4gray")
         self.send_command(0x22) #Display Update Control
         self.send_data(0xCF)
         self.send_command(0x20) #Activate Display Update Sequence
@@ -226,6 +230,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
     #         self.init_bw()
 
     def init(self, partial=True, gray=False, **kwargs):
+        print(f"init")
         self.partial_refresh = partial
         self.gray = gray
 
@@ -267,6 +272,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         self.wait_until_idle()
 
     def init_fast(self, partial=True, gray=False, **kwargs):
+        print(f"init_fast")
         self.partial_refresh = partial
         self.gray = gray
 
@@ -357,7 +363,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
 
     # Writing outside the range of the display will cause an error.
     def fill(self, color, fillsize):
-        print(f"fill")
+        print(f"fill: color {color}, fillsize {fillsize}")
         """Slow fill routine"""
 
         div, rem = divmod(self.height, fillsize)
@@ -388,15 +394,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
     def display_full(self):
         print(f"display_full")
         self.send_command(0x24)
-
-        #print(f"frame buffer: {self.frame_buffer}")
-
-        ##TODO: Pickup here... is this really frame buffer to image?
         self.send_data(self.frame_buffer)
-
-        width = int(self.width // 8)
-        height = int(self.height)
-
 
         self.send_command(0x26)
         self.send_data(self.frame_buffer)
@@ -477,7 +475,8 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         self.send_data(0x00) 
 
         self.send_command(0x24) # WRITE_RAM
-        self.send_data(self.get_buffer(image))  
+
+        self.send_data(image)  
         self.turn_on_display_partial()
 
     # def sleep(self):
@@ -527,6 +526,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
                 idiv, irem = divmod(x + i, 8)
                 mask = 0b10000000 >> irem
                 idxi = idiv
+
                 if pixels[i, j] != 0:
                     self.frame_buffer[idxi + idxj] |= mask
                 else:
@@ -536,79 +536,77 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         print(f"draw, x:{x}, y;{y}, image:{image}")
         """replace a particular area on the display with an image"""
 
-        self.set_frame_buffer(x, y, image)
-        self.display_full()
-        #if self.partial_refresh:
-        #    self.set_frame_buffer(x, y, image)
-#       #     self.display_partial(x, y, x + image.width, y + image.height)
-        #    self.display_partial(image)
-        #else:
-        #    self.set_frame_buffer(0, 0, image)
-        #    self.display_full()
+        if self.partial_refresh:
+           self.set_frame_buffer(x, y, image)
+           #self.display_partial(x, y, x + image.width, y + image.height)
+           self.display_partial(self.frame_buffer)
+        else:
+           self.set_frame_buffer(x, y, image)
+           self.display_full()
 
-    def get_buffer(self, image):
-        print(f"get_buffer")
-        #logger.debug("bufsiz = ",int(self.width/8) * self.height)
-        buf = [0xFF] * (int(self.width / 8) * self.height)
-        image_monocolor = image.convert('1')
-        imwidth, imheight = image_monocolor.size
-        pixels = image_monocolor.load()
-        #logger.debug("imwidth = %d, imheight = %d",imwidth,imheight)
-        if imwidth == self.width and imheight == self.height:
-            #logger.debug("Horizontal")
-            for y in range(imheight):
-                for x in range(imwidth):
-                    # Set the bits for the column of pixels at the current position.
-                    if pixels[x, y] == 0:
-                        buf[int((x + y * self.width) / 8)] &= ~(0x80 >> (x % 8))
-        elif imwidth == self.height and imheight == self.width:
-            #logger.debug("Vertical")
-            for y in range(imheight):
-                for x in range(imwidth):
-                    newx = y
-                    newy = self.height - x - 1
-                    if pixels[x, y] == 0:
-                        buf[int((newx + newy * self.width) / 8)] &= ~(0x80 >> (y % 8))
-        return buf
+    # def get_buffer(self, image):
+    #     print(f"get_buffer")
+    #     #logger.debug("bufsiz = ",int(self.width/8) * self.height)
+    #     buf = [0xFF] * (int(self.width / 8) * self.height)
+    #     image_monocolor = image.convert('1')
+    #     imwidth, imheight = image_monocolor.size
+    #     pixels = image_monocolor.load()
+    #     #logger.debug("imwidth = %d, imheight = %d",imwidth,imheight)
+    #     if imwidth == self.width and imheight == self.height:
+    #         #logger.debug("Horizontal")
+    #         for y in range(imheight):
+    #             for x in range(imwidth):
+    #                 # Set the bits for the column of pixels at the current position.
+    #                 if pixels[x, y] == 0:
+    #                     buf[int((x + y * self.width) / 8)] &= ~(0x80 >> (x % 8))
+    #     elif imwidth == self.height and imheight == self.width:
+    #         #logger.debug("Vertical")
+    #         for y in range(imheight):
+    #             for x in range(imwidth):
+    #                 newx = y
+    #                 newy = self.height - x - 1
+    #                 if pixels[x, y] == 0:
+    #                     buf[int((newx + newy * self.width) / 8)] &= ~(0x80 >> (y % 8))
+    #     return buf
 
-    def get_buffer_4Gray(self, image):
-        print(f"get_buffer_4gray")
-        #logger.debug("4g: bufsiz = ",int(self.width/8) * self.height)
-        buf = [0xFF] * (int(self.width / 4) * self.height)
-        image_monocolor = image.convert('L')
-        imwidth, imheight = image_monocolor.size
-        pixels = image_monocolor.load()
-        i = 0
-        #logger.debug("4g: imwidth = %d, imheight = %d",imwidth,imheight)
-        if imwidth == self.width and imheight == self.height:
-            #logger.debug("Vertical")
-            for y in range(imheight):
-                for x in range(imwidth):
-                    # Set the bits for the column of pixels at the current position.
-                    if pixels[x, y] == 0xC0:
-                        pixels[x, y] = 0x80
-                    elif pixels[x, y] == 0x80:
-                        pixels[x, y] = 0x40
-                    i = i + 1
-                    if i % 4 == 0:
-                        buf[int((x + (y * self.width)) / 4)] = (
-                                    (pixels[x - 3, y] & 0xc0) | (pixels[x - 2, y] & 0xc0) >> 2 | (
-                                        pixels[x - 1, y] & 0xc0) >> 4 | (pixels[x, y] & 0xc0) >> 6)
+    # def get_buffer_4Gray(self, image):
+    #     print(f"get_buffer_4gray")
+    #     #logger.debug("4g: bufsiz = ",int(self.width/8) * self.height)
+    #     buf = [0xFF] * (int(self.width / 4) * self.height)
+    #     image_monocolor = image.convert('L')
+    #     imwidth, imheight = image_monocolor.size
+    #     pixels = image_monocolor.load()
+    #     i = 0
+    #     #logger.debug("4g: imwidth = %d, imheight = %d",imwidth,imheight)
+    #     if imwidth == self.width and imheight == self.height:
+    #         #logger.debug("Vertical")
+    #         for y in range(imheight):
+    #             for x in range(imwidth):
+    #                 # Set the bits for the column of pixels at the current position.
+    #                 if pixels[x, y] == 0xC0:
+    #                     pixels[x, y] = 0x80
+    #                 elif pixels[x, y] == 0x80:
+    #                     pixels[x, y] = 0x40
+    #                 i = i + 1
+    #                 if i % 4 == 0:
+    #                     buf[int((x + (y * self.width)) / 4)] = (
+    #                                 (pixels[x - 3, y] & 0xc0) | (pixels[x - 2, y] & 0xc0) >> 2 | (
+    #                                     pixels[x - 1, y] & 0xc0) >> 4 | (pixels[x, y] & 0xc0) >> 6)
 
-        elif imwidth == self.height and imheight == self.width:
-            logger.debug("Horizontal")
-            for x in range(imwidth):
-                for y in range(imheight):
-                    newx = y
-                    newy = x
-                    if pixels[x, y] == 0xC0:
-                        pixels[x, y] = 0x80
-                    elif pixels[x, y] == 0x80:
-                        pixels[x, y] = 0x40
-                    i = i + 1
-                    if i % 4 == 0:
-                        buf[int((newx + (newy * self.width)) / 4)] = (
-                                    (pixels[x, y - 3] & 0xc0) | (pixels[x, y - 2] & 0xc0) >> 2 | (
-                                        pixels[x, y - 1] & 0xc0) >> 4 | (pixels[x, y] & 0xc0) >> 6)
+    #     elif imwidth == self.height and imheight == self.width:
+    #         logger.debug("Horizontal")
+    #         for x in range(imwidth):
+    #             for y in range(imheight):
+    #                 newx = y
+    #                 newy = x
+    #                 if pixels[x, y] == 0xC0:
+    #                     pixels[x, y] = 0x80
+    #                 elif pixels[x, y] == 0x80:
+    #                     pixels[x, y] = 0x40
+    #                 i = i + 1
+    #                 if i % 4 == 0:
+    #                     buf[int((newx + (newy * self.width)) / 4)] = (
+    #                                 (pixels[x, y - 3] & 0xc0) | (pixels[x, y - 2] & 0xc0) >> 2 | (
+    #                                     pixels[x, y - 1] & 0xc0) >> 4 | (pixels[x, y] & 0xc0) >> 6)
 
-        return buf
+    #     return buf
