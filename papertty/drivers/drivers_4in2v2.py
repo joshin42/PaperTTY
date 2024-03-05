@@ -24,7 +24,7 @@ from papertty.drivers.drivers_partial import WavesharePartial
 # The driver works as follows:
 #
 # This driver is for the following display:
-#     400x300, 4.2inch E-Ink display module
+#     400x300, 4.2inch E-Ink display module v2
 #     SKU: 13353
 #     Part Number: 4.2inch e-Paper Module
 #     Brand: Waveshare
@@ -69,15 +69,13 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         self.supports_partial = True
 
         # this is the memory buffer that will be updated!
-        self.frame_buffer = [0xFF] * (self.width * self.height // 8)
+        self.frame_buffer = [0xff] * (self.width * self.height // 8)
 
     # TODO: universal?
     def set_setting(self, command, data):
         print(f"set_setting")
         self.send_command(command)
         self.send_data(data)
-        # for d in data:
-        #     self.send_data(d)
 
     # TODO: universal?
     def set_resolution(self):
@@ -113,27 +111,15 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
             self.spi_transfer([data])
         self.digital_write(self.CS_PIN, GPIO.HIGH)
 
-
-    # def wait_until_idle(self):
-    #     self.send_command(self.GET_STATUS)
-    #     while self.digital_read(self.BUSY_PIN) == 0:
-    #         self.send_command(self.GET_STATUS)
-    #         self.delay_ms(100)
-
     # ReadBusy
     def wait_until_idle(self):
         print(f"wait_until_idle")
         #self.send_command(self.GET_STATUS)
         while self.digital_read(self.BUSY_PIN) == 1:
-        	self.delay_ms(20)
+            print(f"busy, waiting")
+            self.delay_ms(20) #20
             #self.send_command(self.GET_STATUS)
             #self.delay_ms(100)
-
-
-    # def turn_on_display(self):
-    #     self.send_command(self.DISPLAY_REFRESH)
-    #     self.delay_ms(100)
-    #     self.wait_until_idle()
 
     def turn_on_display(self):
         print(f"turn_on_display")
@@ -162,72 +148,6 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         self.send_data(0xCF)
         self.send_command(0x20) #Activate Display Update Sequence
         self.wait_until_idle()
-
-    # def full_set_lut(self):
-    #     self.set_setting(self.VCOM_LUT, self.LUT_VCOM0)
-    #     self.set_setting(self.W2W_LUT, self.LUT_WW)
-    #     self.set_setting(self.B2W_LUT, self.LUT_BW)
-    #     self.set_setting(self.W2B_LUT, self.LUT_WB)
-    #     self.set_setting(self.B2B_LUT, self.LUT_BB)
-
-    # def partial_set_lut(self):
-    #     self.set_setting(self.VCOM_LUT, self.PARTIAL_LUT_VCOM1)
-    #     self.set_setting(self.W2W_LUT, self.PARTIAL_LUT_WW1)
-    #     self.set_setting(self.B2W_LUT, self.PARTIAL_LUT_BW1)
-    #     self.set_setting(self.W2B_LUT, self.PARTIAL_LUT_WB1)
-    #     self.set_setting(self.B2B_LUT, self.PARTIAL_LUT_BB1)
-
-    # def gray_set_lut(self):
-    #     self.set_setting(self.VCOM_LUT, self.GRAY_LUT_VCOM)
-    #     self.set_setting(self.W2W_LUT, self.GRAY_LUT_WW)
-    #     self.set_setting(self.B2W_LUT, self.GRAY_LUT_BW)
-    #     self.set_setting(self.W2B_LUT, self.GRAY_LUT_WB)
-    #     self.set_setting(self.B2B_LUT, self.GRAY_LUT_BB)
-
-    # def init_bw(self):
-    #     self.reset()
-    #     self.set_setting(self.POWER_SETTING, [0x03, 0x00, 0x2b, 0x2b])
-    #     self.set_setting(self.BOOSTER_SOFT_START, [0x17, 0x17, 0x17])
-    #     self.send_command(self.POWER_ON)
-    #     self.wait_until_idle()
-    #     # kw-bf kwr-af bwrotp 0f bwotp 1f
-    #     self.set_setting(self.PANEL_SETTING, [0xbf, 0x0d])
-    #     # 3a 100hz   29 150hz 39 200hz	31 171hz
-    #     self.set_setting(self.PLL_CONTROL, [0x3c])
-    #     self.set_resolution()
-    #     self.set_setting(self.VCM_DC_SETTING, [0x28])
-    #     # wbmode: vbdf 17|d7 vbdw 97 vbdb 57
-    #     # wbrmode:vbdf f7 vbdw 77 vbdb 37 vbdr b7
-    #     self.set_setting(self.VCOM_AND_DATA_INTERVAL_SETTING, [0x97])
-    #     self.full_set_lut()
-
-    # def init_gray(self):
-    #     self.reset()
-    #     self.set_setting(self.POWER_SETTING, [0x03, 0x00, 0x2b, 0x2b, 0x13])
-    #     self.set_setting(self.BOOSTER_SOFT_START, [0x17, 0x17, 0x17])
-    #     self.send_command(self.POWER_ON)
-    #     self.wait_until_idle()
-    #     # kw-3f  kwr-2f  bwrotp 0f  bwotp 1f
-    #     self.set_setting(self.PANEL_SETTING, [0x3f])
-    #     # 3a 100hz   29 150hz 39 200hz	31 171hz
-    #     self.set_setting(self.PLL_CONTROL, [0x3c])
-    #     self.set_resolution()
-    #     self.set_setting(self.VCM_DC_SETTING, [0x12])
-    #     # wbmode:vbdf 17|d7 vbdw 97 vbdb 57
-    #     # wbrmode:vbdf f7 vbdw 77 vbdb 37 vbdr b7
-    #     self.set_setting(self.VCOM_AND_DATA_INTERVAL_SETTING, [0x97])
-
-    # def init(self, partial=True, gray=False, **kwargs):
-    #     self.partial_refresh = partial
-    #     self.gray = gray
-
-    #     if self.epd_init() != 0:
-    #         return -1
-
-    #     if self.gray:
-    #         self.init_gray()
-    #     else:
-    #         self.init_bw()
 
     def init(self, partial=True, gray=False, **kwargs):
         print(f"init")
@@ -271,6 +191,8 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         self.send_data(0x00)  
         self.wait_until_idle()
 
+        self.clear()
+
     def init_fast(self, partial=True, gray=False, **kwargs):
         print(f"init_fast")
         self.partial_refresh = partial
@@ -292,13 +214,8 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         self.send_command(0x3C)  # BorderWavefrom
         self.send_data(0x05)
 
-        # if mode == self.Seconds_1_5S:
-        #     self.send_command(0x1A)
-        #     self.send_data(0x6E)  
-        # else :
-        if True:
-            self.send_command(0x1A)
-            self.send_data(0x5A)  
+        self.send_command(0x1A)
+        self.send_data(0x5A)  
 
         self.send_command(0x22)  # Load temperature value
         self.send_data(0x91)  
@@ -325,26 +242,6 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         self.send_data(0x00)
         self.send_data(0x00)  
         self.wait_until_idle()
-
-
-
-    # def clear(self):
-    #     """Full refresh of the display"""
-
-    #     width = int(self.width // 8)
-    #     height = int(self.height)
-
-    #     self.send_command(self.DATA_START_TRANSMISSION_1)
-    #     for i in range(width * height):
-    #         self.send_data(0xff)
-
-    #     self.send_command(self.DATA_START_TRANSMISSION_2)
-    #     for i in range(width * height):
-    #         self.send_data(0xff)
-
-    #     self.send_command(self.DISPLAY_REFRESH)
-    #     self.delay_ms(10)
-    #     self.turn_on_display()
 
     def clear(self):
         print(f"clear")
@@ -376,21 +273,6 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
             image = Image.new('1', (self.width, rem), color)
             self.draw(0, div * fillsize, image)
 
-    # def display_full(self):
-
-    #     # TODO: optimize this as (needs performance check):
-    #     # self.send_command(self.DATA_START_TRANSMISSION_2, self.frame_buffer)
-
-    #     width = int(self.width // 8)
-    #     height = int(self.height)
-
-    #     self.send_command(self.DATA_START_TRANSMISSION_2)
-    #     for i in range(height):
-    #         for j in range(width):
-    #             self.send_data(self.frame_buffer[i * width + j])
-
-    #     self.turn_on_display()
-
     def display_full(self):
         print(f"display_full")
         self.send_command(0x24)
@@ -401,50 +283,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
 
         self.turn_on_display()
 
-    # def display_partial(self, x_start, y_start, x_end, y_end):
-
-    #     width = self.width // 8
-
-    #     # TODO: use x_start // 8 * 9
-    #     x_start = int(x_start if x_start % 8 == 0 else x_start // 8 * 8 + 8)
-    #     x_end = int(x_end if x_end % 8 == 0 else x_end // 8 * 8 + 8)
-
-    #     self.set_setting(self.VCOM_AND_DATA_INTERVAL_SETTING, [0xf7])
-    #     self.delay_ms(100)
-
-    #     self.set_setting(self.VCM_DC_SETTING, [0x08])
-    #     self.set_setting(self.VCOM_AND_DATA_INTERVAL_SETTING, [0x47])
-    #     self.partial_set_lut()
-
-    #     self.send_command(self.PARTIAL_IN)
-    #     self.set_setting(self.PARTIAL_WINDOW,
-    #                      [x_start     // 256, x_start     % 256,
-    #                       (x_end - 1) // 256, (x_end - 1) % 256,
-    #                       y_start     // 256, y_start     % 256,
-    #                       (y_end - 1) // 256, (y_end - 1) % 256,
-    #                       0x28])
-
-    #     # writes old data to sram for programming
-    #     self.send_command(self.DATA_START_TRANSMISSION_1)
-    #     for j in range(y_end - y_start):
-    #         idx = (y_start + j) * width + x_start // 8
-    #         # TODO: optimize this by using send_data(array[from:to])
-    #         for i in range((x_end - x_start) // 8):
-    #             self.send_data(self.frame_buffer[idx + i])
-
-    #     # writes new data to sram.
-    #     self.send_command(self.DATA_START_TRANSMISSION_2)
-    #     for j in range(y_end - y_start):
-    #         idx = (y_start + j) * width + x_start // 8
-    #         # TODO: optimize this by using send_data(array[from:to])
-    #         for i in range((x_end - x_start) // 8):
-    #             self.send_data(~self.frame_buffer[idx + i])
-
-    #     self.send_command(self.DISPLAY_REFRESH)   # display refresh
-    #     self.delay_ms(10)  # the delay here is necessary, 200us at least!!!
-    #     self.turn_on_display()
-
-    def display_partial(self, image):
+    def display_partial(self):
         print(f"display partial")
  
         self.send_command(0x3C)  # BorderWavefrom
@@ -476,15 +315,9 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
 
         self.send_command(0x24) # WRITE_RAM
 
-        self.send_data(image)  
+        self.send_data(self.frame_buffer)  
         self.turn_on_display_partial()
 
-    # def sleep(self):
-    #     """Put the display in deep sleep mode"""
-
-    #     self.send_command(self.POWER_OFF)
-    #     self.wait_until_idle()
-    #     self.set_setting(self.DEEP_SLEEP, [0xa5])
 
     def sleep(self):
         print(f"sleep")
@@ -518,7 +351,7 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         imwidth, imheight = image_monocolor.size
         pixels = image_monocolor.load()
 
-        print(f"running loop on image of size {imheight}x{imwidth}")
+        print(f"running loop on image of size {imwidth}x{imheight}")
 
         for j in range(imheight):
             idxj = (y + j) * self.width // 8
@@ -536,77 +369,9 @@ class EPD4in2v2(WavesharePartial, EPD4in2v2const):
         print(f"draw, x:{x}, y;{y}, image:{image}")
         """replace a particular area on the display with an image"""
 
+        self.set_frame_buffer(x, y, image)
+
         if self.partial_refresh:
-           self.set_frame_buffer(x, y, image)
-           #self.display_partial(x, y, x + image.width, y + image.height)
-           self.display_partial(self.frame_buffer)
+            self.display_partial()
         else:
-           self.set_frame_buffer(x, y, image)
-           self.display_full()
-
-    # def get_buffer(self, image):
-    #     print(f"get_buffer")
-    #     #logger.debug("bufsiz = ",int(self.width/8) * self.height)
-    #     buf = [0xFF] * (int(self.width / 8) * self.height)
-    #     image_monocolor = image.convert('1')
-    #     imwidth, imheight = image_monocolor.size
-    #     pixels = image_monocolor.load()
-    #     #logger.debug("imwidth = %d, imheight = %d",imwidth,imheight)
-    #     if imwidth == self.width and imheight == self.height:
-    #         #logger.debug("Horizontal")
-    #         for y in range(imheight):
-    #             for x in range(imwidth):
-    #                 # Set the bits for the column of pixels at the current position.
-    #                 if pixels[x, y] == 0:
-    #                     buf[int((x + y * self.width) / 8)] &= ~(0x80 >> (x % 8))
-    #     elif imwidth == self.height and imheight == self.width:
-    #         #logger.debug("Vertical")
-    #         for y in range(imheight):
-    #             for x in range(imwidth):
-    #                 newx = y
-    #                 newy = self.height - x - 1
-    #                 if pixels[x, y] == 0:
-    #                     buf[int((newx + newy * self.width) / 8)] &= ~(0x80 >> (y % 8))
-    #     return buf
-
-    # def get_buffer_4Gray(self, image):
-    #     print(f"get_buffer_4gray")
-    #     #logger.debug("4g: bufsiz = ",int(self.width/8) * self.height)
-    #     buf = [0xFF] * (int(self.width / 4) * self.height)
-    #     image_monocolor = image.convert('L')
-    #     imwidth, imheight = image_monocolor.size
-    #     pixels = image_monocolor.load()
-    #     i = 0
-    #     #logger.debug("4g: imwidth = %d, imheight = %d",imwidth,imheight)
-    #     if imwidth == self.width and imheight == self.height:
-    #         #logger.debug("Vertical")
-    #         for y in range(imheight):
-    #             for x in range(imwidth):
-    #                 # Set the bits for the column of pixels at the current position.
-    #                 if pixels[x, y] == 0xC0:
-    #                     pixels[x, y] = 0x80
-    #                 elif pixels[x, y] == 0x80:
-    #                     pixels[x, y] = 0x40
-    #                 i = i + 1
-    #                 if i % 4 == 0:
-    #                     buf[int((x + (y * self.width)) / 4)] = (
-    #                                 (pixels[x - 3, y] & 0xc0) | (pixels[x - 2, y] & 0xc0) >> 2 | (
-    #                                     pixels[x - 1, y] & 0xc0) >> 4 | (pixels[x, y] & 0xc0) >> 6)
-
-    #     elif imwidth == self.height and imheight == self.width:
-    #         logger.debug("Horizontal")
-    #         for x in range(imwidth):
-    #             for y in range(imheight):
-    #                 newx = y
-    #                 newy = x
-    #                 if pixels[x, y] == 0xC0:
-    #                     pixels[x, y] = 0x80
-    #                 elif pixels[x, y] == 0x80:
-    #                     pixels[x, y] = 0x40
-    #                 i = i + 1
-    #                 if i % 4 == 0:
-    #                     buf[int((newx + (newy * self.width)) / 4)] = (
-    #                                 (pixels[x, y - 3] & 0xc0) | (pixels[x, y - 2] & 0xc0) >> 2 | (
-    #                                     pixels[x, y - 1] & 0xc0) >> 4 | (pixels[x, y] & 0xc0) >> 6)
-
-    #     return buf
+            self.display_full()
